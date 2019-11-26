@@ -1,26 +1,29 @@
 import React from 'react'
 import ReactPlayer from 'react-player'
+// import PlayerStore from '@features/player/store'
+import { inject } from '@lib/store'
 
-import PlayerStore from '@features/player/store'
+export default inject('playerStore')(Player)
 
-function Player() {
-  const playerStore = new PlayerStore()
+function Player({ playerStore }) {
+  // const playerStore = new PlayerStore()
   const { url, playing } = playerStore.nowPlaying
 
   return (
     <ReactPlayer
+      key="playerbar"
       css={{ display: 'none' }}
       playing={playing}
       url={url}
       progressInterval={50}
       volume={0.8}
       muted={false}
-      onProgress={data => console.log('onProgress', data)}
+      onProgress={data => {
+        playerStore.updateProgressBar(data)
+      }}
       onEnded={() => {
-        console.log('onEnded')
+        playerStore.clearProgressBar()
       }}
     />
   )
 }
-
-export default Player
