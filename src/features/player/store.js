@@ -3,14 +3,6 @@ import { convertSecondsToMinutes } from '@features/player/utilities'
 
 export default class PlayerStore {
   @observable
-  // nowPlaying = {
-  //   playing: false,
-  //   title: 'ไกลแค่ไหน คือ ใกล้',
-  //   subTitle: 'Getsunova',
-  //   image: 'https://i.scdn.co/image/ab67616d0000b273e76e64aa449965dd5e439c53',
-  //   url:
-  //     'https://p.scdn.co/mp3-preview/f0521c21357ae522872b59cf4dd082ad65880fe8?cid=e4abb1ea8fdf4926a463960abd146fcb',
-  // }
   nowPlaying = {
     playing: false,
     title: '',
@@ -18,15 +10,21 @@ export default class PlayerStore {
     image: '',
     url: '',
     indexInQueue: null,
+    isLooping: false,
   }
+
   @observable
   progressBarProcessing = {
     timeElapsed: '0:00',
     progress: 0,
     duration: '0:00',
   }
+
   @observable
   queueSong = []
+
+  @observable
+  instReactPlayer = null
 
   @action
   play(track) {
@@ -37,11 +35,13 @@ export default class PlayerStore {
     this.nowPlaying.image = image
     this.nowPlaying.url = previewUrl
     this.nowPlaying.indexInQueue = indexInQueue
-    console.log('Now Playing:', indexInQueue)
+    if (indexInQueue === null) {
+      this.queueSong = [track]
+    }
   }
   @action
-  replay() {
-    console.log('replay')
+  toggleLooping() {
+    this.nowPlaying.isLooping = !this.nowPlaying.isLooping
   }
   @action
   toggle() {
@@ -57,14 +57,59 @@ export default class PlayerStore {
     this.progressBarProcessing.progress = played
     this.progressBarProcessing.duration = convertSecondsToMinutes(loadedSeconds)
   }
+  gotoNextPrevSong(direction = 'next', callback = () => false) {
+    if (this.nowPlaying.indexInQueue !== null) {
+      const currIndex = this.nowPlaying.indexInQueue
+      let nextIndex = direction === 'next' ? currIndex + 1 : currIndex - 1
+
+      if (
+        (nextIndex === this.queueSong.length || nextIndex === -1) &&
+        this.nowPlaying.isLooping
+      ) {
+        nextIndex = direction === 'next' ? 0 : this.queueSong.length - 1
+      } else if (
+        (nextIndex === this.queueSong.length || nextIndex === -1) &&
+        !this.nowPlaying.isLooping
+      ) {
+        return callback()
+      }
+      this.play(this.queueSong[nextIndex])
+    }
+  }
   @action
-  clearProgressBar() {
-    this.updateProgressBar({ playedSeconds: 0, loadedSeconds: 0, played: 0 })
+  handleEndSong() {
+    if (this.nowPlaying.indexInQueue !== null) {
+      this.gotoNextPrevSong('next', () => {
+        this.updateProgressBar({
+          playedSeconds: 0,
+          loadedSeconds: 0,
+          played: 0,
+        })
+      })
+    } else {
+      // seek to 0
+      this.updateProgressBar({ playedSeconds: 0, loadedSeconds: 0, played: 0 })
+    }
+  }
+
+  @action
+  handleActionInQueue(operation = 'next') {
+    if (this.nowPlaying.indexInQueue !== null) {
+      this.gotoNextPrevSong(operation)
+    }
   }
   @action
   addToQueue(track) {
     track.indexInQueue = this.queueSong.length
-    console.log(track)
     this.queueSong = this.queueSong.concat([track])
+  }
+  @action
+  handleClickProgressBar(progessValue) {
+    // this.progressBarProcessing.progress = progessValue
+    this.instReactPlayer.seekTo(progessValue)
+  }
+  @action
+  setInstPlayer(instReactPlayer) {
+    this.instReactPlayer = instReactPlayer
   }
 }

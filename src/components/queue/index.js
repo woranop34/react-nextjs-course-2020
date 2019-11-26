@@ -45,7 +45,7 @@ export default inject('playerStore')(
   compose(withPage({ restricted: true }))(QueuePage),
 )
 
-function QueuePage({ tracks, playerStore }) {
+function QueuePage({ playerStore }) {
   const { token } = useMember()
 
   if (token === null) {

@@ -1,17 +1,20 @@
-import React from 'react'
+import React, { useRef, useEffect } from 'react'
 import ReactPlayer from 'react-player'
 // import PlayerStore from '@features/player/store'
 import { inject } from '@lib/store'
-
 export default inject('playerStore')(Player)
 
 function Player({ playerStore }) {
   // const playerStore = new PlayerStore()
   const { url, playing } = playerStore.nowPlaying
+  const instPlayer = useRef(null)
+  useEffect(() => {
+    playerStore.setInstPlayer(instPlayer.current)
+  }, [])
 
   return (
     <ReactPlayer
-      key="playerbar"
+      ref={instPlayer}
       css={{ display: 'none' }}
       playing={playing}
       url={url}
@@ -22,7 +25,7 @@ function Player({ playerStore }) {
         playerStore.updateProgressBar(data)
       }}
       onEnded={() => {
-        playerStore.clearProgressBar()
+        playerStore.handleEndSong()
       }}
     />
   )

@@ -32,14 +32,19 @@ function ButtonControl({ icon, circle = false, active = false, onClick }) {
 }
 
 function ControlPanel({ playerStore }) {
-  const { playing } = playerStore.nowPlaying
+  const { playing, isLooping } = playerStore.nowPlaying
   return (
     <Flex>
       <Box>
         <ButtonControl icon="random" active={false} onClick={() => {}} />
       </Box>
       <Box>
-        <ButtonControl icon="step-backward" onClick={() => {}} />
+        <ButtonControl
+          icon="step-backward"
+          onClick={() => {
+            playerStore.handleActionInQueue('prev')
+          }}
+        />
       </Box>
       <Box>
         <ButtonControl
@@ -51,14 +56,19 @@ function ControlPanel({ playerStore }) {
         />
       </Box>
       <Box>
-        <ButtonControl icon="step-forward" onClick={() => {}} />
+        <ButtonControl
+          icon="step-forward"
+          onClick={() => {
+            playerStore.handleActionInQueue('next')
+          }}
+        />
       </Box>
       <Box>
         <ButtonControl
           icon="redo-alt"
-          active={false}
+          active={isLooping}
           onClick={() => {
-            playerStore.replay()
+            playerStore.toggleLooping()
           }}
         />
       </Box>
