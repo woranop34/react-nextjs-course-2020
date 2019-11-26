@@ -17,25 +17,27 @@ export default class PlayerStore {
     subTitle: '',
     image: '',
     url: '',
+    indexInQueue: null,
   }
   @observable
   progressBarProcessing = {
     timeElapsed: '0:00',
-    progress: 1,
-    duration: '0:30',
+    progress: 0,
+    duration: '0:00',
   }
   @observable
   queueSong = []
 
   @action
   play(track) {
-    const { previewUrl, name, artist, image } = track
+    const { previewUrl, name, artist, image, indexInQueue = null } = track
     this.nowPlaying.playing = true
     this.nowPlaying.title = name
     this.nowPlaying.subTitle = artist
     this.nowPlaying.image = image
     this.nowPlaying.url = previewUrl
-    console.log('Now Playing:', this.nowPlaying.title)
+    this.nowPlaying.indexInQueue = indexInQueue
+    console.log('Now Playing:', indexInQueue)
   }
   @action
   replay() {
@@ -58,5 +60,11 @@ export default class PlayerStore {
   @action
   clearProgressBar() {
     this.updateProgressBar({ playedSeconds: 0, loadedSeconds: 0, played: 0 })
+  }
+  @action
+  addToQueue(track) {
+    track.indexInQueue = this.queueSong.length
+    console.log(track)
+    this.queueSong = this.queueSong.concat([track])
   }
 }
